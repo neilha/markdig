@@ -371,6 +371,8 @@ namespace Markdig.Extensions.Tables
                     TrimStart(beginOfCell);
                     TrimEnd(endOfCell);
 
+                    bool cellIsHeader = TrimHeaderCell(beginOfCell);
+
                     var cellContainer = new ContainerInline();
 
                     // Copy elements from beginOfCell on the first level
@@ -413,6 +415,12 @@ namespace Markdig.Extensions.Tables
                         row.Line = cellContainer.Line;
                         row.Column = cellContainer.Column;
                     }
+
+                    if(row.Count == 0 && cellIsHeader)
+                    {
+                        tableCell.IsHeader = true;
+                    }
+
                     row.Add(tableCell);
                     cells.Add(tableCell);
                 }
@@ -612,6 +620,24 @@ namespace Markdig.Extensions.Tables
             {
                 literal.Content.TrimEnd();
             }
+        }
+
+        private static bool TrimHeaderCell(Inline inline)
+        {
+            var literal = inline as LiteralInline;
+            bool isHeader = false;
+
+            if (literal != null)
+            {
+                isHeader = literal.Content.MatchLowercase("# ");
+
+                if(isHeader)
+                {
+                    literal.Content.Start = literal.Content.Start + 2;
+                }
+            }
+
+            return isHeader;
         }
 
         private static bool IsNullOrSpace(Inline inline)
